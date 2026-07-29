@@ -36,8 +36,12 @@
 const { useState, useMemo } = React;
 
 // ---------------------------------------------------------------------------
-// DATA MODEL — disesuaikan dengan Gambar 4.x (Level 0, Level 1, Level 2) final
-// yang sudah disepakati. Risiko/kontrol tetap ilustratif (belum divalidasi FGD).
+// DATA MODEL — sesuai Gambar 4.x (Level 0/1/2) final, ditambah:
+//   - valueAdd  : klasifikasi nilai tambah proses (Inti / Pendukung)
+//   - governance: pemegang keputusan, terpisah dari unit pelaksana
+//   - kpi       : indikator kinerja ilustratif per proses
+// Semua field risiko/kontrol/kpi/governance bersifat ilustratif — belum
+// divalidasi FGD/Expert Review.
 // ---------------------------------------------------------------------------
 
 const LEVEL0 = [
@@ -46,6 +50,9 @@ const LEVEL0 = [
     x: 50, y: 6,
     deskripsi: "Titik berangkat seluruh arsitektur proses SPI, dua peran resmi yang tercantum di Piagam Audit Internal — bukan sub-kategori satu sama lain.",
     unit: ["Kepala SPI"], sistem: [],
+    valueAdd: "strategis",
+    governance: "Kepala SPI, sebagai pemilik dan penjaga Piagam Audit Internal.",
+    kpi: "Peninjauan Piagam Audit Internal dilakukan minimal satu kali per tahun.",
     risiko: "Dualitas mandat (Assurance vs Advisory) tidak dipahami konsisten oleh unit kerja, sehingga ekspektasi peran SPI bercampur.",
     kontrol: "Piagam Audit Internal mendefinisikan kedua peran secara eksplisit dan dikomunikasikan ke seluruh pemangku kepentingan.",
     upstream: [], downstream: ["partner", "advisor"], status: "existing",
@@ -55,6 +62,9 @@ const LEVEL0 = [
     x: 28, y: 24,
     deskripsi: "\u201cMemberikan assurance, insight, dan foresight secara independen berbasis risiko untuk mendukung pencapaian tujuan strategis Perusahaan, tanpa mengambil alih tanggung jawab manajemen.\u201d Rincian siklus 5 tahap ada di Gambar Level 1, pilot Continuous Audit di Level 2.",
     unit: ["Kepala SPI", "Auditor"], sistem: [],
+    valueAdd: "inti",
+    governance: "Kepala SPI.",
+    kpi: "Realisasi rencana kerja tahunan berbasis risiko mencapai target yang ditetapkan.",
     risiko: "Independensi assurance berkurang jika Strategic Assurance Partner terlibat pengambilan keputusan manajemen.",
     kontrol: "Piagam menegaskan peran ini tanpa mengambil alih tanggung jawab manajemen.",
     upstream: ["mandat"], downstream: ["l1-1"], status: "existing",
@@ -64,6 +74,9 @@ const LEVEL0 = [
     x: 72, y: 24,
     deskripsi: "\u201cMemberikan saran, pandangan, insight, dan rekomendasi yang independen, objektif, berbasis risiko, serta bernilai tambah kepada Direksi, Dewan Komisaris, Komite Audit, dan manajemen, tanpa mengambil alih tanggung jawab manajemen.\u201d Disebut untuk kelengkapan mandat, tidak didalami sebagai artefak terpisah.",
     unit: ["Kepala SPI"], sistem: [],
+    valueAdd: "pendukung",
+    governance: "Kepala SPI.",
+    kpi: "Di luar cakupan pengukuran mendalam penelitian ini.",
     risiko: "Peran advisory tumpang tindih dengan assurance jika tidak dipisahkan strukturnya.",
     kontrol: "Dipisahkan eksplisit di Level 0 sebagai cabang mandat terpisah, di luar cakupan mendalam penelitian ini.",
     upstream: ["mandat"], downstream: [], status: "existing",
@@ -76,6 +89,9 @@ const LEVEL1 = [
     x: 12, y: 50, annot: true,
     deskripsi: "Evaluasi berkala (bukan real-time) atas sub-proses 1 (Perencanaan) dan 5 (Pembelajaran), berbeda sifat dari Approval Tim Quality Assurance yang real-time (Ongoing Monitoring) di sub-proses 3. Sesuai IIA Standards 1300-1312 (QAIP).",
     unit: ["Tim Quality Assurance"], sistem: [],
+    valueAdd: "pendukung",
+    governance: "Tim Quality Assurance.",
+    kpi: "Self-assessment dilakukan minimal satu kali per tahun.",
     risiko: "Evaluasi berkala tidak cukup sering untuk menangkap penurunan kualitas metodologi perencanaan/pembelajaran secara dini.",
     kontrol: "Periodic Self-Assessment dijadwalkan rutin, terpisah dari Ongoing Monitoring real-time di sub-proses 3.",
     upstream: [], downstream: [], status: "existing",
@@ -84,6 +100,9 @@ const LEVEL1 = [
     id: "l1-1", label: "1", nama: "Perencanaan Berbasis Risiko dan Kinerja", x: 50, y: 8,
     deskripsi: "Penyusunan rencana kerja tahunan dengan rujukan KRI/KCI/KPI.",
     unit: ["Kepala SPI", "Auditor"], sistem: [],
+    valueAdd: "inti",
+    governance: "Kepala SPI (menyetujui rencana kerja tahunan).",
+    kpi: "Rencana kerja tahunan disetujui tepat waktu sebelum tahun berjalan dimulai.",
     risiko: "Perencanaan tidak berbasis risiko terkini jika data KRI/KPI belum termutakhirkan.",
     kontrol: "Sinkronisasi jadwal perencanaan dengan siklus penetapan KPI-KRI-KCI tahunan; dipantau via QA Internal Periodic Self-Assessment.",
     upstream: ["partner", "l1-5"], downstream: ["l1-2"], status: "existing",
@@ -92,6 +111,9 @@ const LEVEL1 = [
     id: "l1-2", label: "2", nama: "Pelaksanaan Audit / Assurance", x: 50, y: 27,
     deskripsi: "Assurance Delivery: Audit Operasional, Audit Tujuan Tertentu, Audit Investigasi, Continuous Audit, Joint Audit. Assurance Support: Monitoring, Internal Control, Quality Assurance (TIDAK termasuk Advisory — Advisory adalah mandat Trusted Advisor terpisah, lihat Level 0). Continuous Audit adalah satu-satunya klaster dengan rancangan BPA Tingkat 2 penuh — 9 klaster lain berhenti di Tingkat 1.",
     unit: ["Kepala SPI", "Auditor", "Tim QA"], sistem: ["AMS"],
+    valueAdd: "inti",
+    governance: "Kepala SPI.",
+    kpi: "Realisasi audit/assurance terhadap rencana kerja tahunan.",
     risiko: "Kapasitas auditor tidak cukup untuk menjalankan seluruh Assurance Delivery dan Support secara bersamaan.",
     kontrol: "Prioritisasi berbasis risiko — Continuous Audit didalami penuh sebagai pilot sebelum diperluas ke klaster lain.",
     upstream: ["l1-1"], downstream: ["l1-3", "k"], status: "existing", hasLevel2: true,
@@ -99,7 +121,10 @@ const LEVEL1 = [
   {
     id: "l1-3", label: "3", nama: "Komunikasi Hasil dan Penetapan Status", x: 50, y: 46,
     deskripsi: "3.1 Komunikasi awal hasil temuan (draft ke pihak terkait, belum final) → 3.2 Tindak lanjut oleh Auditee/pihak terkait → 3.3 Auditor menetapkan status usulan → 3.4 Status disetujui QA? Tidak → kembali ke 3.2; Ya → 3.5 Approval Tim Quality Assurance (Ongoing Monitoring) → 3.6 Laporan final diterbitkan dan dikomunikasikan. Gerbang QA mengacu prinsip QAIP (IIA Standards 1300-1312), dirinci khusus Continuous Audit di Level 2.",
-    unit: ["Auditor", "Auditee", "Tim QA"], sistem: [],
+    unit: ["Auditor", "Auditee"], sistem: [],
+    valueAdd: "inti",
+    governance: "Tim Quality Assurance (approval status final sebelum laporan terbit).",
+    kpi: "Waktu rata-rata dari draft temuan ke laporan final sesuai target IIA Standard 2440.",
     risiko: "Status ditetapkan tanpa reviu QA memadai, atau tindak lanjut pra-laporan berlarut-larut.",
     kontrol: "Approval Tim QA wajib sebelum status final ditetapkan, mengikuti IIA Standard 2440 (Disseminating Results).",
     upstream: ["l1-2"], downstream: ["l1-4"], status: "existing",
@@ -108,6 +133,9 @@ const LEVEL1 = [
     id: "l1-4", label: "4", nama: "Tindak Lanjut dan Pemantauan Implementasi Rekomendasi", x: 50, y: 65,
     deskripsi: "4.1 Pemantauan implementasi rekomendasi/action plan oleh manajemen → 4.2 Evaluasi efektivitas tindak lanjut dari waktu ke waktu.",
     unit: ["Kepala SPI", "Auditor"], sistem: [],
+    valueAdd: "inti",
+    governance: "Manajemen unit kerja terkait (pemilik action plan).",
+    kpi: "Persentase rekomendasi yang diimplementasikan tepat waktu sesuai IIA Standard 2500.",
     risiko: "Rekomendasi tidak dipantau implementasinya pasca-laporan terbit, sehingga tidak ada follow-through.",
     kontrol: "Sub-proses terpisah dari komunikasi hasil, mengikuti IIA Standard 2500 (Monitoring Progress).",
     upstream: ["l1-3"], downstream: ["l1-5"], status: "existing",
@@ -116,6 +144,9 @@ const LEVEL1 = [
     id: "l1-5", label: "5", nama: "Pembelajaran dan Pemutakhiran Indikator", x: 50, y: 84,
     deskripsi: "5.1 Evaluasi hasil assurance dan pembelajaran → 5.2 Pemutakhiran KRI/KCI/KPI dan parameter terkait. Terhubung ke QA Internal Periodic Self-Assessment.",
     unit: ["Kepala SPI", "Auditor", "Tim QA"], sistem: [],
+    valueAdd: "pendukung",
+    governance: "Kepala SPI.",
+    kpi: "Jumlah indikator yang dimutakhirkan per siklus tahunan.",
     risiko: "Pembelajaran dan pemutakhiran indikator tidak terdokumentasi, sehingga siklus berikutnya mengulang kesalahan yang sama.",
     kontrol: "Periodic Self-Assessment terhubung ke sub-proses Perencanaan (1) dan Pembelajaran (5).",
     upstream: ["l1-4"], downstream: ["l1-1"], status: "existing",
@@ -132,6 +163,9 @@ const LEVEL2 = [
     x: 6, y: 50, annot: true,
     deskripsi: "Evaluasi berkala (bukan real-time) atas Klaster K dan E, berbeda sifat dari Approval Tim Quality Assurance yang real-time (Ongoing Monitoring) di Klaster C dan D. Sesuai IIA Standards 1300-1312 (QAIP).",
     unit: ["Tim Quality Assurance"], sistem: [],
+    valueAdd: "pendukung",
+    governance: "Tim Quality Assurance.",
+    kpi: "Self-assessment Klaster K dan E dilakukan minimal satu kali per tahun.",
     risiko: "Evaluasi berkala tidak cukup sering untuk menangkap penurunan kualitas metodologi K/E secara dini.",
     kontrol: "Periodic Self-Assessment dijadwalkan rutin, terpisah dari Ongoing Monitoring real-time di Klaster C/D.",
     upstream: [], downstream: [], status: "existing",
@@ -141,6 +175,9 @@ const LEVEL2 = [
     deskripsi: "Dimiliki dan dijalankan oleh RWI Consulting, Divisi Manajemen Risiko, dan Perencanaan Kinerja — SPI turut serta lewat Tim Advisory (bukan fungsi independen, tidak terlibat proses assurance/QA di Klaster D). Memicu Pembentukan Tim Continuous Audit (Klaster T).",
     unit: ["RWI Consulting", "Divisi Manajemen Risiko", "Perencanaan Kinerja", "Kepala Urusan Pengawasan (Tim Advisory)"],
     sistem: ["TOR Integrasi KPI-KRI-KCI"],
+    valueAdd: "pendukung",
+    governance: "RWI Consulting / Divisi Manajemen Risiko / Perencanaan Kinerja — keputusan akhir nilai indikator, bukan SPI.",
+    kpi: "KPI-KRI-KCI tahunan ditetapkan sebelum tahun berjalan dimulai.",
     risiko: "Independensi Tim Advisory berpotensi tergerus jika SPI terlibat langsung dalam keputusan penetapan nilai indikator, bukan sekadar memberi masukan.",
     kontrol: "Batasan peran eksplisit — Tim Advisory hanya memberi masukan, keputusan akhir tetap di pemilik indikator; tidak dilibatkan di Klaster D.",
     upstream: ["e"], downstream: ["t"], status: "existing",
@@ -148,7 +185,10 @@ const LEVEL2 = [
   {
     id: "t", label: "T", nama: "Pembentukan Tim Continuous Audit", x: 22, y: 20,
     deskripsi: "T1 Ketua Seksi Teknik Pengawasan membentuk Group Regional → T2 Approval berjenjang (Kepala Urusan Pengawasan → Kepala SPI) → T3 Pengawas menunjuk Auditor per Regional → T4 Tim terbentuk, BELUM AKTIF.",
-    unit: ["Ketua Seksi Teknik Pengawasan", "Kepala Urusan Pengawasan", "Kepala SPI"], sistem: [],
+    unit: ["Ketua Seksi Teknik Pengawasan", "Kepala Urusan Pengawasan"], sistem: [],
+    valueAdd: "pendukung",
+    governance: "Kepala SPI (approval berjenjang akhir).",
+    kpi: "Tim terbentuk paling lambat bersamaan dengan penetapan KPI-KRI-KCI tahunan.",
     risiko: "Keterlambatan approval berjenjang membuat tim belum siap saat KPI-KRI-KCI sudah ditetapkan.",
     kontrol: "Proses paralel dengan penyusunan indikator tahunan, approval berjenjang dijadwalkan mengikuti kalender penyusunan indikator.",
     upstream: ["k"], downstream: ["a1", "a2"], status: "existing",
@@ -157,6 +197,9 @@ const LEVEL2 = [
     id: "a1", label: "A1", nama: "Jalur EWS berbasis KRI (sudah eksis)", x: 10, y: 36,
     deskripsi: "A1a Monitoring KRI oleh KRI Owner dan FMR → A1b Status KRI: aman (kembali monitoring) / waspada-bahaya (lanjut) → A1c Verifikasi FMR, eskalasi ke BOD-1, BOD, dan tim. A1 dan A2 adalah dua jalur pemicu sejajar dan sepenuhnya independen (gerbang OR), bukan berjenjang/sekuensial.",
     unit: ["KRI Owner", "FMR"], sistem: ["EWS RWI Consulting"],
+    valueAdd: "inti",
+    governance: "KRI Owner/FMR (eskalasi); Kepala SPI (keputusan aktivasi tim).",
+    kpi: "Waktu dari notifikasi EWS sampai aktivasi tim maksimal 3 hari kerja.",
     risiko: "Notifikasi EWS terlambat diterima atau salah eskalasi sehingga tim tidak segera aktif.",
     kontrol: "Mekanisme eskalasi otomatis KRI Owner/FMR ke BOD-1/BOD sesuai threshold Waspada/Bahaya.",
     upstream: ["t"], downstream: ["act"], status: "existing",
@@ -165,6 +208,9 @@ const LEVEL2 = [
     id: "a2", label: "A2", nama: "Jalur Perencanaan Risk-based (dalam tahun berjalan)", x: 36, y: 36,
     deskripsi: "A2a Pemilihan KRI berdampak signifikan untuk diuji. Bermuara ke titik yang sama dengan A1 — \u201cTim Continuous Audit Diaktifkan\u201d — sebagai alternatif setara, bukan lanjutan A1.",
     unit: ["Tim Continuous Audit"], sistem: [],
+    valueAdd: "inti",
+    governance: "Tim Continuous Audit.",
+    kpi: "Jumlah KRI signifikan yang diuji terjadwal per tahun sesuai rencana.",
     risiko: "Pemilihan KRI risk-based tidak mewakili risiko paling signifikan tahun berjalan.",
     kontrol: "Kriteria pemilihan berbasis dampak dan probabilitas, direviu berkala oleh Tim Continuous Audit.",
     upstream: ["t"], downstream: ["act"], status: "existing",
@@ -173,6 +219,9 @@ const LEVEL2 = [
     id: "act", label: "ACT", nama: "Tim Continuous Audit Diaktifkan", x: 24, y: 50,
     deskripsi: "Titik konvergensi dari dua jalur pemicu independen (A1 EWS reaktif, A2 risk-based planning proaktif — gerbang OR, bukan berjenjang). Setelah aktif, tim menjalankan Continuous Data Assurance (Klaster B).",
     unit: ["Tim Continuous Audit"], sistem: [],
+    valueAdd: "inti",
+    governance: "Kepala SPI.",
+    kpi: "—",
     risiko: "Aktivasi ganda/tumpang tindih kalau A1 dan A2 memicu bersamaan tanpa koordinasi.",
     kontrol: "Satu tim yang sama menerima kedua jalur pemicu (gerbang OR), bukan dua tim terpisah.",
     upstream: ["a1", "a2"], downstream: ["b"], status: "existing",
@@ -181,6 +230,9 @@ const LEVEL2 = [
     id: "b", label: "B", nama: "Continuous Data Assurance", x: 52, y: 20,
     deskripsi: "B1 Deteksi exception berbasis rule (kartu per-KCI di menu Analitik AMS); analisis tren dan variansi (Dashboard Anomali dan Data Detail); B3 Digital analysis/Benford's Law (deteksi pola digit tidak wajar). Rujukan: Vasarhelyi dkk. (2004); Nigrini (1997/1999).",
     unit: ["Tim Continuous Audit"], sistem: ["AMS", "Dashboard Anomali"],
+    valueAdd: "inti",
+    governance: "Tim Continuous Audit.",
+    kpi: "Persentase anomali terverifikasi terhadap total anomali terdeteksi (target minim false positive).",
     risiko: "False positive/negative dari deteksi rule-based dan analisis tren menyebabkan sumber daya audit salah sasaran.",
     kontrol: "Kombinasi tiga metode (rule-based, tren/variansi, Benford's Law) saling memvalidasi temuan sebelum lanjut ke Klaster B2.",
     upstream: ["act"], downstream: ["b2"], status: "existing",
@@ -189,6 +241,9 @@ const LEVEL2 = [
     id: "b2", label: "B2", nama: "Analisis dan Verifikasi Wilayah Penyebab", x: 80, y: 20,
     deskripsi: "Domain SPI. Analisis regional: identifikasi kandidat wilayah penyebab → Verifikasi: benar wilayah ini penyebabnya? Tidak → kembali ke analisis regional; Ya → lanjut ke Klaster C. Kontribusi baru penelitian, memastikan tindak lanjut (Klaster C) terfokus pada wilayah penyebab — KRI korporat bersifat agregat, sedangkan temuan bersifat granular per-wilayah.",
     unit: ["Tim Continuous Audit"], sistem: ["AMS"],
+    valueAdd: "inti",
+    governance: "Tim Continuous Audit.",
+    kpi: "Waktu rata-rata verifikasi wilayah penyebab maksimal 5 hari kerja.",
     risiko: "Kesalahan identifikasi wilayah penyebab karena KRI agregat korporat tidak granular per-wilayah.",
     kontrol: "Verifikasi silang data granular per-kanwil sebelum tindak lanjut dikirim bertarget; loop internal jika verifikasi belum menemukan wilayah yang tepat.",
     upstream: ["b"], downstream: ["c"], status: "baru",
@@ -196,7 +251,10 @@ const LEVEL2 = [
   {
     id: "c", label: "C", nama: "Continuous Control Monitoring dan Tindak Lanjut", x: 62, y: 50,
     deskripsi: "C1 Pengujian efektivitas kontrol oleh Auditor (berbasis Data Detail) → C2 Kontrol lemah? Tidak → langsung ke Klaster D; Ya → C3 Auditor kirim anomali ke Auditee, Auditee unggah tindak lanjut → C4 Status sesuai? Belum → kembali ke C3; Sesuai → C5 Approval Tim Quality Assurance (Ongoing Monitoring, real-time).",
-    unit: ["Auditor", "Auditee", "Tim Quality Assurance"], sistem: ["AMS"],
+    unit: ["Auditor", "Auditee"], sistem: ["AMS"],
+    valueAdd: "inti",
+    governance: "Tim Quality Assurance (approval status final, Ongoing Monitoring).",
+    kpi: "Persentase anomali berstatus \"Sesuai\" dalam SLA yang ditetapkan.",
     risiko: "Inkonsistensi penilaian efektivitas kontrol antar Auditor, atau status disetujui tanpa reviu memadai.",
     kontrol: "Approval Tim Quality Assurance (Ongoing Monitoring) wajib sebelum status final ditetapkan.",
     upstream: ["b2"], downstream: ["d"], status: "baru",
@@ -204,7 +262,10 @@ const LEVEL2 = [
   {
     id: "d", label: "D", nama: "Continuous Risk Monitoring and Assessment", x: 86, y: 50,
     deskripsi: "D1 Verifikasi konsistensi KRI/KCI (leading) vs KPI (lagging) → D2 Indikator konsisten? Tidak → Approval Tim QA → D4 Rekomendasi kalibrasi ulang indikator ke pemilik KRI/KCI/KPI; Ya → Approval Tim QA → D5 Tutup tiket, tim kembali berstatus standby. Kedua cabang bermuara ke Klaster E. Rujukan: Moon dan Krahel (2020).",
-    unit: ["Tim Continuous Audit", "Tim Quality Assurance"], sistem: ["AMS"],
+    unit: ["Tim Continuous Audit"], sistem: ["AMS"],
+    valueAdd: "inti",
+    governance: "Tim Quality Assurance (approval kedua cabang, konsisten/tidak konsisten).",
+    kpi: "Persentase indikator konsisten leading-lagging per periode penilaian.",
     risiko: "Kesimpulan konsistensi KRI/KCI vs KPI keliru karena leading-lagging indicator tidak dipahami tepat, berdampak ke rekomendasi kalibrasi yang salah.",
     kontrol: "Approval Tim QA di kedua cabang (konsisten/tidak konsisten) sebelum rekomendasi/tiket ditutup disampaikan.",
     upstream: ["c"], downstream: ["e"], status: "baru",
@@ -213,6 +274,9 @@ const LEVEL2 = [
     id: "e", label: "E", nama: "Assurance Learning & Information Refinement", x: 45, y: 80,
     deskripsi: "Aksi SPI: validasi hasil assurance, improve CA rules, improve dashboard & threshold, capture lessons learned. Aksi Pemilik Indikator (Divisi Manajemen Risiko/STK) berdasarkan rekomendasi SPI: refine KPI, refine KRI, refine KCI. Loop balik ke Klaster K untuk siklus tahun berikutnya — Klaster K-E membentuk satu siklus assurance tertutup.",
     unit: ["Tim Continuous Audit", "Pemilik KPI/KRI/KCI"], sistem: ["AMS", "Dashboard Anomali"],
+    valueAdd: "inti",
+    governance: "Tim Continuous Audit (Aksi SPI); Pemilik KPI/KRI/KCI (Aksi Pemilik Indikator).",
+    kpi: "Persentase lessons learned yang diimplementasikan ke rules/dashboard sebelum siklus berikutnya dimulai.",
     risiko: "Lessons learned tidak benar-benar diimplementasikan ke rules/dashboard/threshold, siklus perbaikan berhenti di dokumentasi saja.",
     kontrol: "Dua jalur aksi eksplisit (Aksi SPI vs Aksi Pemilik Indikator) dengan target closure jelas sebelum siklus berikutnya dimulai.",
     upstream: ["d"], downstream: ["k"], status: "baru",
@@ -228,6 +292,9 @@ const LEVELS = {
   1: { title: "Level 1 — 9 Klaster Assurance + Trusted Advisor", nodes: LEVEL1, annotations: LEVEL1_ANN },
   2: { title: "Level 2 — Continuous Audit (satu-satunya klaster didalami penuh)", nodes: LEVEL2, annotations: LEVEL2_ANN },
 };
+
+const VALUE_ADD_LABEL = { inti: "Inti (Core)", pendukung: "Pendukung (Support)", strategis: "Strategis" };
+const VALUE_ADD_COLOR = { inti: "#5EEAD4", pendukung: "#8FA0B3", strategis: "#C792EA" };
 
 function findAnywhere(id) {
   for (const lv of [0, 1, 2]) {
@@ -246,6 +313,7 @@ function traceImpact(nodes, id) {
 function BPANavigator() {
   const [level, setLevel] = useState(2);
   const [selected, setSelected] = useState("b2");
+  const [detailMode, setDetailMode] = useState(true); // true = Lengkap, false = Ringkas
 
   const nodes = LEVELS[level].nodes;
   const active = nodes.find((n) => n.id === selected) || null;
@@ -299,20 +367,26 @@ function BPANavigator() {
           <div style={styles.eyebrow}>Purwarupa · SPI Jasa Raharja</div>
           <h1 style={styles.title}>BPA Navigator</h1>
           <p style={styles.subtitle}>
-            Jelajahi Business Process Architecture — pilih proses untuk melihat unit terdampak, sistem terintegrasi, risiko kegagalan, dan jejak dependency.
+            Jelajahi Business Process Architecture — pilih proses untuk melihat unit terdampak, sistem terintegrasi, KPI, governance, risiko kegagalan, dan jejak dependency.
           </p>
         </div>
-        <div style={styles.levelTabs}>
-          {[0, 1, 2].map((lv) => (
-            <button
-              key={lv}
-              className="node-btn"
-              onClick={() => { setLevel(lv); setSelected(LEVELS[lv].nodes[0].id); }}
-              style={{ ...styles.levelTab, ...(level === lv ? styles.levelTabActive : {}) }}
-            >
-              Level {lv}
-            </button>
-          ))}
+        <div style={styles.headerControls}>
+          <div style={styles.levelTabs}>
+            {[0, 1, 2].map((lv) => (
+              <button
+                key={lv}
+                className="node-btn"
+                onClick={() => { setLevel(lv); setSelected(LEVELS[lv].nodes[0].id); }}
+                style={{ ...styles.levelTab, ...(level === lv ? styles.levelTabActive : {}) }}
+              >
+                Level {lv}
+              </button>
+            ))}
+          </div>
+          <div style={styles.modeTabs}>
+            <button className="node-btn" onClick={() => setDetailMode(false)} style={{ ...styles.modeTab, ...(!detailMode ? styles.modeTabActive : {}) }}>Ringkas</button>
+            <button className="node-btn" onClick={() => setDetailMode(true)} style={{ ...styles.modeTab, ...(detailMode ? styles.modeTabActive : {}) }}>Lengkap</button>
+          </div>
         </div>
       </header>
 
@@ -378,8 +452,15 @@ function BPANavigator() {
                 ) : (
                   <span style={styles.nodeText}>{n.label}</span>
                 )}
-                {n.hasLevel2 && <span style={styles.l2Badge}>Level 2 ↴</span>}
-                {n.status === "baru" && <span style={styles.newBadge}>rekomendasi</span>}
+                <div style={styles.nodeBadgeRow}>
+                  {n.valueAdd && (
+                    <span style={{ ...styles.vaBadge, color: VALUE_ADD_COLOR[n.valueAdd] }}>
+                      ● {VALUE_ADD_LABEL[n.valueAdd]}
+                    </span>
+                  )}
+                  {n.hasLevel2 && <span style={styles.l2Badge}>Level 2 ↴</span>}
+                  {n.status === "baru" && <span style={styles.newBadge}>rekomendasi</span>}
+                </div>
                 {n.annot && <span style={styles.annBadge}>anotasi · evaluasi berkala</span>}
               </button>
             );
@@ -392,6 +473,11 @@ function BPANavigator() {
               <div style={styles.panelEyebrow}>
                 {active.label !== active.nama ? `${active.label} · ` : ""}
                 {active.annot ? "Anotasi pendukung" : active.status === "baru" ? "Proses baru (rekomendasi)" : "Proses eksisting"}
+                {active.valueAdd && (
+                  <span style={{ color: VALUE_ADD_COLOR[active.valueAdd], marginLeft: 8 }}>
+                    · {VALUE_ADD_LABEL[active.valueAdd]}
+                  </span>
+                )}
               </div>
               <h2 style={styles.panelTitle}>{active.nama || active.label}</h2>
               <p style={styles.panelDesc}>{active.deskripsi}</p>
@@ -410,15 +496,29 @@ function BPANavigator() {
                 </div>
               </div>
 
-              <div style={styles.field}>
-                <div style={styles.fieldLabel}>Risiko kegagalan proses</div>
-                <p style={styles.riskText}>{active.risiko}</p>
-              </div>
+              {detailMode && (
+                <React.Fragment>
+                  <div style={styles.field}>
+                    <div style={styles.fieldLabel}>Pemegang keputusan (governance)</div>
+                    <p style={styles.govText}>{active.governance}</p>
+                  </div>
 
-              <div style={styles.field}>
-                <div style={styles.fieldLabel}>Kontrol mitigasi</div>
-                <p style={styles.controlText}>{active.kontrol}</p>
-              </div>
+                  <div style={styles.field}>
+                    <div style={styles.fieldLabel}>Indikator kinerja (KPI)</div>
+                    <p style={styles.kpiText}>{active.kpi}</p>
+                  </div>
+
+                  <div style={styles.field}>
+                    <div style={styles.fieldLabel}>Risiko kegagalan proses</div>
+                    <p style={styles.riskText}>{active.risiko}</p>
+                  </div>
+
+                  <div style={styles.field}>
+                    <div style={styles.fieldLabel}>Kontrol mitigasi</div>
+                    <p style={styles.controlText}>{active.kontrol}</p>
+                  </div>
+                </React.Fragment>
+              )}
 
               <div style={styles.field}>
                 <div style={styles.fieldLabel}>Dibutuhkan dari (hulu)</div>
@@ -447,7 +547,7 @@ function BPANavigator() {
       </main>
 
       <footer style={styles.footer}>
-        Purwarupa demonstratif — mendukung validasi Expert Review/FGD, bukan sistem produksi. Risiko/kontrol bersifat ilustratif untuk mendemonstrasikan konsep Risk-aware BPM.
+        Purwarupa demonstratif — mendukung validasi Expert Review/FGD, bukan sistem produksi. KPI, governance, risiko, dan kontrol bersifat ilustratif.
       </footer>
     </div>
   );
@@ -458,19 +558,25 @@ const styles = {
   header: { display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: 20, maxWidth: 1100, margin: "0 auto" },
   eyebrow: { fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "#5EEAD4", marginBottom: 6 },
   title: { fontFamily: "'Space Grotesk', sans-serif", fontSize: "clamp(28px, 4vw, 38px)", fontWeight: 700, margin: "0 0 8px", letterSpacing: "-0.01em" },
-  subtitle: { color: "#8FA0B3", fontSize: 14, maxWidth: 480, lineHeight: 1.5, margin: 0 },
+  subtitle: { color: "#8FA0B3", fontSize: 14, maxWidth: 500, lineHeight: 1.5, margin: 0 },
+  headerControls: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10 },
   levelTabs: { display: "flex", gap: 8 },
   levelTab: { fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, fontWeight: 600, color: "#8FA0B3", background: "#161E28", border: "1px solid #2A3644", borderRadius: 8, padding: "8px 14px", cursor: "pointer" },
   levelTabActive: { color: "#0E141C", background: "#5EEAD4", borderColor: "#5EEAD4" },
+  modeTabs: { display: "flex", gap: 4, background: "#161E28", border: "1px solid #2A3644", borderRadius: 8, padding: 3 },
+  modeTab: { fontFamily: "'IBM Plex Mono', monospace", fontSize: 11.5, fontWeight: 600, color: "#8FA0B3", background: "transparent", border: "none", borderRadius: 6, padding: "5px 11px", cursor: "pointer" },
+  modeTabActive: { color: "#0E141C", background: "#C792EA" },
   levelLabel: { maxWidth: 1100, margin: "22px auto 0", fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, color: "#5A6C7E", letterSpacing: "0.04em" },
   main: { maxWidth: 1100, margin: "10px auto 0", display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 20 },
   diagramWrap: { position: "relative", background: "#101720", border: "1px solid #202A36", borderRadius: 16, minHeight: 640, overflow: "hidden" },
   svg: { position: "absolute", inset: 0, width: "100%", height: "100%" },
-  node: { position: "absolute", transform: "translate(-50%, -50%)", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 2, minWidth: 148, maxWidth: 188, padding: "9px 12px", borderRadius: 10, border: "1px solid #2A3644", cursor: "pointer", textAlign: "left", color: "#E7ECF1" },
+  node: { position: "absolute", transform: "translate(-50%, -50%)", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 2, minWidth: 148, maxWidth: 190, padding: "9px 12px", borderRadius: 10, border: "1px solid #2A3644", cursor: "pointer", textAlign: "left", color: "#E7ECF1" },
   nodeCode: { fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#5EEAD4", fontWeight: 600 },
   nodeText: { fontSize: 13, fontWeight: 500, lineHeight: 1.3 },
-  l2Badge: { fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: "#F5A623", marginTop: 3 },
-  newBadge: { fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: "#0E141C", background: "#F5A623", borderRadius: 4, padding: "1px 5px", marginTop: 3, alignSelf: "flex-start" },
+  nodeBadgeRow: { display: "flex", flexWrap: "wrap", gap: 6, marginTop: 3 },
+  vaBadge: { fontFamily: "'IBM Plex Mono', monospace", fontSize: 9 },
+  l2Badge: { fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: "#F5A623" },
+  newBadge: { fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: "#0E141C", background: "#F5A623", borderRadius: 4, padding: "1px 5px" },
   annBadge: { fontFamily: "'IBM Plex Mono', monospace", fontSize: 8.5, color: "#8FA0B3", marginTop: 3 },
   panel: { background: "#131B25", border: "1px solid #202A36", borderRadius: 16, padding: 22, height: "fit-content", position: "sticky", top: 20 },
   panelEyebrow: { fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#5EEAD4", letterSpacing: "0.06em", marginBottom: 8 },
@@ -486,6 +592,8 @@ const styles = {
   crossBadge: { opacity: 0.7 },
   riskText: { fontSize: 12.5, lineHeight: 1.55, color: "#F0B490", margin: 0, padding: "9px 11px", background: "#F5A62312", border: "1px solid #F5A62330", borderRadius: 8 },
   controlText: { fontSize: 12.5, lineHeight: 1.55, color: "#9FD8D5", margin: 0, padding: "9px 11px", background: "#5EEAD412", border: "1px solid #5EEAD430", borderRadius: 8 },
+  govText: { fontSize: 12.5, lineHeight: 1.55, color: "#DCC4F0", margin: 0, padding: "9px 11px", background: "#C792EA14", border: "1px solid #C792EA30", borderRadius: 8 },
+  kpiText: { fontSize: 12.5, lineHeight: 1.55, color: "#BFD8F0", margin: 0, padding: "9px 11px", background: "#5B9BD514", border: "1px solid #5B9BD530", borderRadius: 8 },
   emptyText: { fontSize: 12.5, color: "#5A6C7E" },
   drillBtn: { marginTop: 4, width: "100%", fontFamily: "'IBM Plex Mono', monospace", fontSize: 12.5, fontWeight: 600, color: "#0E141C", background: "#5EEAD4", border: "none", borderRadius: 8, padding: "10px 14px", cursor: "pointer" },
   footer: { maxWidth: 1100, margin: "22px auto 0", fontSize: 11.5, color: "#4A5A6A", fontFamily: "'IBM Plex Mono', monospace" },
