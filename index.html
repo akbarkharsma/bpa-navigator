@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BPA Navigator — SPI Jasa Raharja</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #0E141C; }
+  body { font-family: 'IBM Plex Sans', sans-serif; }
+  .node-btn { transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease; }
+  .node-btn:hover { transform: translateY(-1px); }
+  .node-btn:focus-visible { outline: 2px solid #5EEAD4; outline-offset: 3px; }
+  .pulse-line { stroke-dasharray: 6 5; animation: dash 1.1s linear infinite; }
+  @keyframes dash { to { stroke-dashoffset: -22; } }
+  @media (prefers-reduced-motion: reduce) {
+    .node-btn { transition: none; }
+    .pulse-line { animation: none; }
+  }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #2A3644; border-radius: 8px; }
+  @media (max-width: 860px) {
+    .bpa-main { grid-template-columns: 1fr !important; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+// ---------------------------------------------------------------------------
+// DATA MODEL
+// ---------------------------------------------------------------------------
+
+const LEVEL0 = [
+  {
+    id: "mandat",
+    label: "Mandat SPI",
+    sub: "Piagam Audit Internal",
+    x: 50, y: 6,
+    deskripsi: "Titik berangkat seluruh arsitektur proses SPI, dua peran resmi yang tercantum di Piagam Audit Internal.",
+    unit: ["Kepala SPI"],
+    sistem: [],
+    upstream: [],
+    downstream: ["partner", "advisor"],
+    status: "existing",
+  },
+  {
+    id: "partner",
+    label: "Strategic Assurance Partner",
+    sub: "fokus mendalam penelitian ini",
+    x: 28, y: 24,
+    deskripsi: "Assurance, insight, dan foresight independen berbasis risiko untuk mendukung tujuan strategis perusahaan, tanpa mengambil alih tanggung jawab manajemen.",
+    unit: ["Kepala SPI", "Auditor"],
+    sistem: [],
+    upstream: ["mandat"],
+    downstream: ["l1-1", "l1-2", "l1-3", "l1-4", "l1-5"],
+    status: "existing",
+  },
+  {
+    id: "advisor",
+    label: "Trusted Advisor",
+    sub: "di luar cakupan mendalam — lihat 2.2 Batasan Proyek",
+    x: 72, y: 24,
+    deskripsi: "Saran, pandangan, insight, dan rekomendasi independen kepada Direksi, Dewan Komisaris, Komite Audit, dan manajemen.",
+    unit: ["Kepala SPI"],
+    sistem: [],
+    upstream: ["mandat"],
+    downstream: [],
+    status: "existing",
+  },
+];
+
+const LEVEL1 = [
+  { id: "l1-1", label: "Perencanaan Berbasis Risiko dan Kinerja", x: 10, y: 10 },
+  { id: "l1-2", label: "Pelaksanaan Audit / Assurance", x: 10, y: 32 },
+  { id: "l1-3", label: "Komunikasi Hasil dan Penetapan Status", x: 10, y: 54 },
+  { id: "l1-4", label: "Tindak Lanjut dan Pemantauan Implementasi Rekomendasi", x: 10, y: 76 },
+  { id: "l1-5", label: "Pembelajaran dan Pemutakhiran Indikator", x: 10, y: 98 },
+].map((n) => ({
+  ...n,
+  deskripsi:
+    n.id === "l1-2"
+      ? "Assurance Delivery (Audit Operasional, Tujuan Tertentu, Investigasi, Continuous Audit, Joint Audit) dan Assurance Support (Monitoring, Internal Control, Quality Assurance). Continuous Audit adalah satu-satunya klaster yang didalami sampai Level 2."
+      : "Sub-proses Level 1 dari siklus Strategic Assurance Partner.",
+  unit: ["Kepala SPI", "Auditor", "Tim QA"],
+  sistem: n.id === "l1-2" ? ["AMS"] : [],
+  upstream: n.id === "l1-1" ? ["partner"] : [],
+  downstream: n.id === "l1-2" ? ["k"] : [],
+  status: "existing",
+  hasLevel2: n.id === "l1-2",
+}));
+
+const LEVEL2 = [
+  {
+    id: "k", label: "K", nama: "Tim Advisory",
+    x: 50, y: 4,
+    deskripsi: "Partisipasi SPI dalam penyusunan KPI-KRI-KCI tahunan, sebagai Tim Advisory — bukan fungsi independen dan tidak terlibat proses assurance/QA di Klaster D.",
+    unit: ["Kepala Urusan Pengawasan", "Divisi Manajemen Risiko", "Perencanaan Kinerja"],
+    sistem: ["TOR Integrasi KPI-KRI-KCI"],
+    upstream: ["e"],
+    downstream: ["t"],
+    status: "existing",
+  },
+  {
+    id: "t", label: "T", nama: "Pembentukan Tim Continuous Audit",
+    x: 50, y: 16,
+    deskripsi: "Tahunan, paralel dengan penyusunan KPI-KRI-KCI. Ketua Seksi Teknik Pengawasan bentuk tim → approval berjenjang Kepala Urusan Pengawasan → Kepala SPI → Pengawas tunjuk Auditor. Tim berstatus belum aktif/standby setelah terbentuk.",
+    unit: ["Ketua Seksi Teknik Pengawasan", "Kepala Urusan Pengawasan", "Kepala SPI"],
+    sistem: [],
+    upstream: ["k"],
+    downstream: ["a1", "a2"],
+    status: "existing",
+  },
+  {
+    id: "a1", label: "A1", nama: "EWS (reaktif)",
+    x: 30, y: 30,
+    deskripsi: "Notifikasi KRI/KCI berstatus Waspada/Bahaya dari mekanisme RWI Consulting — KRI Owner/FMR mengeskalasi ke BOD-1/BOD.",
+    unit: ["KRI Owner", "FMR"],
+    sistem: ["EWS RWI Consulting"],
+    upstream: ["t"],
+    downstream: ["b"],
+    status: "existing",
+  },
+  {
+    id: "a2", label: "A2", nama: "Risk-based Planning (proaktif)",
+    x: 70, y: 30,
+    deskripsi: "SPI memilih KRI berdampak signifikan untuk diuji secara terjadwal dalam tahun berjalan.",
+    unit: ["Tim Continuous Audit"],
+    sistem: [],
+    upstream: ["t"],
+    downstream: ["b"],
+    status: "existing",
+  },
+  {
+    id: "b", label: "B", nama: "Continuous Data Assurance",
+    x: 50, y: 44,
+    deskripsi: "Deteksi exception rule-based (kartu KCI AMS), analisis tren/variansi (Dashboard Anomali/Data Detail), digital analysis/Benford's Law.",
+    unit: ["Tim Continuous Audit"],
+    sistem: ["AMS", "Dashboard Anomali"],
+    upstream: ["a1", "a2"],
+    downstream: ["b2"],
+    status: "existing",
+  },
+  {
+    id: "b2", label: "B2", nama: "Analisis & Verifikasi Wilayah Penyebab",
+    x: 50, y: 56,
+    deskripsi: "Root-cause localization — EWS nasional hanya memberi status agregat korporat, SPI menganalisis kandidat wilayah penyebab dan memverifikasinya sebelum tindak lanjut dikirim bertarget.",
+    unit: ["Tim Continuous Audit"],
+    sistem: ["AMS"],
+    upstream: ["b"],
+    downstream: ["c"],
+    status: "baru",
+  },
+  {
+    id: "c", label: "C", nama: "Continuous Control Monitoring",
+    x: 50, y: 68,
+    deskripsi: "Uji efektivitas kontrol, loop Tindak Lanjut Anomali Auditor-Auditee sampai status \"Sesuai\", dengan Approval Tim Quality Assurance (Ongoing Monitoring) sebelum status final.",
+    unit: ["Auditor", "Auditee", "Tim Quality Assurance"],
+    sistem: ["AMS"],
+    upstream: ["b2"],
+    downstream: ["d"],
+    status: "baru",
+  },
+  {
+    id: "d", label: "D", nama: "Continuous Risk Monitoring and Assessment",
+    x: 50, y: 80,
+    deskripsi: "Verifikasi konsistensi KRI/KCI (leading) vs KPI (lagging). Tidak konsisten → rekomendasi kalibrasi ke pemilik indikator. Approval Tim QA di kedua cabang sebelum keluar.",
+    unit: ["Tim Continuous Audit", "Tim Quality Assurance"],
+    sistem: ["AMS"],
+    upstream: ["c"],
+    downstream: ["e"],
+    status: "baru",
+  },
+  {
+    id: "e", label: "E", nama: "Assurance Learning & Information Refinement",
+    x: 50, y: 92,
+    deskripsi: "Aksi SPI (validasi hasil, improve CA rules, improve dashboard/threshold, capture lessons learned) dan Aksi Pemilik Indikator (refine KPI/KRI/KCI). Loop balik ke K untuk siklus tahun berikutnya.",
+    unit: ["Tim Continuous Audit", "Pemilik KPI/KRI/KCI"],
+    sistem: ["AMS", "Dashboard Anomali"],
+    upstream: ["d"],
+    downstream: ["k"],
+    status: "baru",
+  },
+];
+
+const LEVELS = {
+  0: { title: "Level 0 — Mandat SPI", nodes: LEVEL0 },
+  1: { title: "Level 1 — 9 Klaster Assurance + Trusted Advisor", nodes: LEVEL1 },
+  2: { title: "Level 2 — Continuous Audit (satu-satunya klaster didalami penuh)", nodes: LEVEL2 },
+};
+
+// cari sebuah node di level mana pun (dipakai untuk link lintas level)
+function findAnywhere(id) {
+  for (const lv of [0, 1, 2]) {
+    const n = LEVELS[lv].nodes.find((x) => x.id === id);
+    if (n) return { node: n, level: Number(lv) };
+  }
+  return null;
+}
+
+function traceImpact(nodes, id) {
+  const node = nodes.find((n) => n.id === id);
+  if (!node) return { up: new Set(), down: new Set() };
+  return { up: new Set(node.upstream), down: new Set(node.downstream) };
+}
+
+function BPANavigator() {
+  const [level, setLevel] = useState(2);
+  const [selected, setSelected] = useState("b2");
+
+  const nodes = LEVELS[level].nodes;
+  const active = nodes.find((n) => n.id === selected) || null;
+  const { up, down } = useMemo(() => traceImpact(nodes, selected), [nodes, selected]);
+
+  // pindah ke node target, lintas level kalau perlu — ini yang memperbaiki
+  // bug "link hilir tidak bergerak ke mana-mana" pada versi sebelumnya
+  function goToNode(id) {
+    const found = findAnywhere(id);
+    if (!found) return;
+    if (found.level !== level) setLevel(found.level);
+    setSelected(id);
+  }
+
+  function edges() {
+    const list = [];
+    nodes.forEach((n) => {
+      (n.downstream || []).forEach((toId) => {
+        const to = nodes.find((t) => t.id === toId);
+        if (to) list.push({ from: n, to });
+      });
+    });
+    return list;
+  }
+  const edgeList = edges();
+
+  function edgeState(from, to) {
+    if (from.id === selected || to.id === selected) return "active";
+    if (up.has(from.id) && to.id === selected) return "active";
+    if (down.has(to.id) && from.id === selected) return "active";
+    if (up.has(from.id) || down.has(to.id)) return "dim-active";
+    return "idle";
+  }
+
+  function renderLinkChip(id, kind) {
+    const found = findAnywhere(id);
+    const crossLevel = found && found.level !== level;
+    const chipStyle = kind === "up" ? { ...styles.chip, ...styles.chipUp } : { ...styles.chip, ...styles.chipDown };
+    return (
+      <button
+        key={id}
+        className="node-btn"
+        onClick={() => goToNode(id)}
+        style={{ ...chipStyle, cursor: "pointer" }}
+      >
+        {found ? (found.node.nama || found.node.label) : id}
+        {crossLevel && <span style={styles.crossBadge}> · Level {found.level}</span>}
+      </button>
+    );
+  }
+
+  return (
+    <div style={styles.page}>
+      <header style={styles.header}>
+        <div>
+          <div style={styles.eyebrow}>Purwarupa · SPI Jasa Raharja</div>
+          <h1 style={styles.title}>BPA Navigator</h1>
+          <p style={styles.subtitle}>
+            Jelajahi Business Process Architecture — pilih proses untuk melihat unit terdampak, sistem terintegrasi, dan jejak dependency.
+          </p>
+        </div>
+        <div style={styles.levelTabs}>
+          {[0, 1, 2].map((lv) => (
+            <button
+              key={lv}
+              className="node-btn"
+              onClick={() => { setLevel(lv); setSelected(LEVELS[lv].nodes[0].id); }}
+              style={{ ...styles.levelTab, ...(level === lv ? styles.levelTabActive : {}) }}
+            >
+              Level {lv}
+            </button>
+          ))}
+        </div>
+      </header>
+
+      <div style={styles.levelLabel}>{LEVELS[level].title}</div>
+
+      <main className="bpa-main" style={styles.main}>
+        <div style={styles.diagramWrap}>
+          <svg style={styles.svg} viewBox="0 0 100 100" preserveAspectRatio="none">
+            {edgeList.map((e, i) => {
+              const st = edgeState(e.from, e.to);
+              return (
+                <line
+                  key={i}
+                  x1={e.from.x} y1={e.from.y} x2={e.to.x} y2={e.to.y}
+                  className={st === "active" ? "pulse-line" : ""}
+                  stroke={st === "active" ? "#5EEAD4" : st === "dim-active" ? "#3A4B5C" : "#232E3B"}
+                  strokeWidth={st === "active" ? 0.5 : 0.3}
+                  vectorEffect="non-scaling-stroke"
+                />
+              );
+            })}
+          </svg>
+
+          {nodes.map((n) => {
+            const isSel = n.id === selected;
+            const isUp = up.has(n.id);
+            const isDown = down.has(n.id);
+            const dim = selected && !isSel && !isUp && !isDown;
+            return (
+              <button
+                key={n.id}
+                className="node-btn"
+                onClick={() => setSelected(n.id)}
+                style={{
+                  ...styles.node,
+                  left: `${n.x}%`, top: `${n.y}%`,
+                  opacity: dim ? 0.38 : 1,
+                  borderColor: isSel ? "#5EEAD4" : isUp ? "#F5A623" : isDown ? "#5EEAD4" : "#2A3644",
+                  background: isSel ? "#16323080" : "#161E28",
+                  boxShadow: isSel ? "0 0 0 3px #5EEAD422" : "none",
+                }}
+                title={n.label}
+              >
+                {n.sub || n.nama ? (
+                  <React.Fragment>
+                    <span style={styles.nodeCode}>{n.label}</span>
+                    <span style={styles.nodeText}>{n.nama || n.label}</span>
+                  </React.Fragment>
+                ) : (
+                  <span style={styles.nodeText}>{n.label}</span>
+                )}
+                {n.hasLevel2 && <span style={styles.l2Badge}>Level 2 ↴</span>}
+                {n.status === "baru" && <span style={styles.newBadge}>rekomendasi</span>}
+              </button>
+            );
+          })}
+        </div>
+
+        <aside style={styles.panel}>
+          {active ? (
+            <React.Fragment>
+              <div style={styles.panelEyebrow}>
+                {active.label !== active.nama ? `${active.label} · ` : ""}
+                {active.status === "baru" ? "Proses baru (rekomendasi)" : "Proses eksisting"}
+              </div>
+              <h2 style={styles.panelTitle}>{active.nama || active.label}</h2>
+              <p style={styles.panelDesc}>{active.deskripsi}</p>
+
+              <div style={styles.field}>
+                <div style={styles.fieldLabel}>Unit / pelaksana terdampak</div>
+                <div style={styles.chips}>
+                  {active.unit.length ? active.unit.map((u) => <span key={u} style={styles.chip}>{u}</span>) : <span style={styles.emptyText}>—</span>}
+                </div>
+              </div>
+
+              <div style={styles.field}>
+                <div style={styles.fieldLabel}>Sistem terintegrasi</div>
+                <div style={styles.chips}>
+                  {active.sistem.length ? active.sistem.map((s) => <span key={s} style={{ ...styles.chip, ...styles.chipSystem }}>{s}</span>) : <span style={styles.emptyText}>Tidak ada sistem khusus</span>}
+                </div>
+              </div>
+
+              <div style={styles.field}>
+                <div style={styles.fieldLabel}>Dibutuhkan dari (hulu)</div>
+                <div style={styles.chips}>
+                  {active.upstream.length ? active.upstream.map((id) => renderLinkChip(id, "up")) : <span style={styles.emptyText}>Titik awal siklus</span>}
+                </div>
+              </div>
+
+              <div style={styles.field}>
+                <div style={styles.fieldLabel}>Berdampak ke (hilir)</div>
+                <div style={styles.chips}>
+                  {active.downstream.length ? active.downstream.map((id) => renderLinkChip(id, "down")) : <span style={styles.emptyText}>Titik akhir siklus</span>}
+                </div>
+              </div>
+
+              {active.hasLevel2 && (
+                <button className="node-btn" onClick={() => goToNode("k")} style={styles.drillBtn}>
+                  Lihat detail Level 2 →
+                </button>
+              )}
+            </React.Fragment>
+          ) : (
+            <p style={styles.emptyText}>Pilih satu proses untuk melihat detailnya.</p>
+          )}
+        </aside>
+      </main>
+
+      <footer style={styles.footer}>
+        Purwarupa demonstratif — mendukung validasi Expert Review/FGD, bukan sistem produksi.
+      </footer>
+    </div>
+  );
+}
+
+const styles = {
+  page: { minHeight: "100vh", background: "#0E141C", color: "#E7ECF1", fontFamily: "'IBM Plex Sans', sans-serif", padding: "28px 24px 40px" },
+  header: { display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: 20, maxWidth: 1100, margin: "0 auto" },
+  eyebrow: { fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "#5EEAD4", marginBottom: 6 },
+  title: { fontFamily: "'Space Grotesk', sans-serif", fontSize: "clamp(28px, 4vw, 38px)", fontWeight: 700, margin: "0 0 8px", letterSpacing: "-0.01em" },
+  subtitle: { color: "#8FA0B3", fontSize: 14, maxWidth: 480, lineHeight: 1.5, margin: 0 },
+  levelTabs: { display: "flex", gap: 8 },
+  levelTab: { fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, fontWeight: 600, color: "#8FA0B3", background: "#161E28", border: "1px solid #2A3644", borderRadius: 8, padding: "8px 14px", cursor: "pointer" },
+  levelTabActive: { color: "#0E141C", background: "#5EEAD4", borderColor: "#5EEAD4" },
+  levelLabel: { maxWidth: 1100, margin: "22px auto 0", fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, color: "#5A6C7E", letterSpacing: "0.04em" },
+  main: { maxWidth: 1100, margin: "10px auto 0", display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 20 },
+  diagramWrap: { position: "relative", background: "#101720", border: "1px solid #202A36", borderRadius: 16, minHeight: 520, overflow: "hidden" },
+  svg: { position: "absolute", inset: 0, width: "100%", height: "100%" },
+  node: { position: "absolute", transform: "translate(-50%, -50%)", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 2, minWidth: 150, maxWidth: 190, padding: "9px 12px", borderRadius: 10, border: "1px solid #2A3644", cursor: "pointer", textAlign: "left", color: "#E7ECF1" },
+  nodeCode: { fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#5EEAD4", fontWeight: 600 },
+  nodeText: { fontSize: 13, fontWeight: 500, lineHeight: 1.3 },
+  l2Badge: { fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: "#F5A623", marginTop: 3 },
+  newBadge: { fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: "#0E141C", background: "#F5A623", borderRadius: 4, padding: "1px 5px", marginTop: 3, alignSelf: "flex-start" },
+  panel: { background: "#131B25", border: "1px solid #202A36", borderRadius: 16, padding: 22, height: "fit-content", position: "sticky", top: 20 },
+  panelEyebrow: { fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#5EEAD4", letterSpacing: "0.06em", marginBottom: 8 },
+  panelTitle: { fontFamily: "'Space Grotesk', sans-serif", fontSize: 21, fontWeight: 700, margin: "0 0 10px" },
+  panelDesc: { fontSize: 13.5, lineHeight: 1.6, color: "#B8C4D0", margin: "0 0 18px" },
+  field: { marginBottom: 16 },
+  fieldLabel: { fontFamily: "'IBM Plex Mono', monospace", fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.08em", color: "#5A6C7E", marginBottom: 7 },
+  chips: { display: "flex", flexWrap: "wrap", gap: 6 },
+  chip: { fontSize: 12, padding: "5px 10px", borderRadius: 999, background: "#1B2530", border: "1px solid #2A3644", color: "#DCE4EB" },
+  chipSystem: { borderColor: "#3A4B5C", color: "#9FD8D5" },
+  chipUp: { borderColor: "#F5A623", color: "#F5A623", background: "#F5A62314" },
+  chipDown: { borderColor: "#5EEAD4", color: "#5EEAD4", background: "#5EEAD414" },
+  crossBadge: { opacity: 0.7 },
+  emptyText: { fontSize: 12.5, color: "#5A6C7E" },
+  drillBtn: { marginTop: 4, width: "100%", fontFamily: "'IBM Plex Mono', monospace", fontSize: 12.5, fontWeight: 600, color: "#0E141C", background: "#5EEAD4", border: "none", borderRadius: 8, padding: "10px 14px", cursor: "pointer" },
+  footer: { maxWidth: 1100, margin: "22px auto 0", fontSize: 11.5, color: "#4A5A6A", fontFamily: "'IBM Plex Mono', monospace" },
+};
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<BPANavigator />);
+</script>
+</body>
+</html>
